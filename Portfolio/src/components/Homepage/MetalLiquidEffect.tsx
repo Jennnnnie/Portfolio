@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import {
   Environment,
@@ -20,34 +20,58 @@ const LiquidObject: React.FC<LiquidObjectProps> = ({ position }) => {
   const meshRef = useRef<THREE.Mesh>(null!);
   const materialRef = useRef<DistortMaterialType>(null!);
 
-  // useFrame for animation loop
+  //direction and movement of liquid objects
+  const movement = useMemo(
+    () => ({
+      dirX: (Math.random() - 0.5) * 0.0006,
+      dirY: (Math.random() - 0.5) * 0.0006,
+      phase: Math.random() * Math.PI * 2,
+    }),
+    []
+  );
+
+  // animation loop
   useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+
     if (meshRef.current) {
-      meshRef.current.rotation.y = clock.getElapsedTime() * 0.1;
+      // constant drift
+      meshRef.current.position.x += movement.dirX;
+      meshRef.current.position.y += movement.dirY;
+
+      // wander
+      meshRef.current.position.x += Math.sin(t * 0.2 + movement.phase) * 0.001;
+      meshRef.current.position.y += Math.cos(t * 0.2 + movement.phase) * 0.001;
+
+      // rotation
+      meshRef.current.rotation.y = t * 0.1;
+
+      // If they go too far left, they wrap to the right (and vice versa)
+      if (meshRef.current.position.x > 12) meshRef.current.position.x = -12;
+      if (meshRef.current.position.x < -12) meshRef.current.position.x = 12;
+      if (meshRef.current.position.y > 8) meshRef.current.position.y = -8;
+      if (meshRef.current.position.y < -8) meshRef.current.position.y = 8;
     }
 
     const material = materialRef.current;
-
     if (material && 'distort' in material) {
-      material.distort = 0.5 + Math.sin(clock.getElapsedTime()) * 0.15;
+      material.distort = 0.5 + Math.sin(t * 0.5) * 0.15;
     }
   });
 
   return (
     <mesh ref={meshRef} position={position}>
-      {/* Tesselated Sphere*/}
-      <sphereGeometry args={[1, 64, 64]} />
+      {/* Shape and size of the liquid object */}
+      <sphereGeometry args={[1.3, 64, 64]} />
 
-      {/* MeshDistortMaterial for a liquid/organic look. Set metalness HIGH for reflective effect*/}
+      {/* MeshDistortMaterial for a liquid/organic look. Set metalness higher for reflective effect*/}
       <MeshDistortMaterial
         ref={materialRef as any}
         metalness={1.0}
         roughness={0.1}
         color={'#E0E0E0'}
         clearcoat={1.0}
-        clearcoatRoughness={0.05}
-        distort={0.6}
-        speed={2.5}
+        speed={1}
       />
     </mesh>
   );

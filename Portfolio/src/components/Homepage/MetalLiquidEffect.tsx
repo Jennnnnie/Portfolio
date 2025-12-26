@@ -63,15 +63,15 @@ const MetalLiquidEffect = () => {
 
       {/* Each blob can move independently from one another*/}
       <DragControls>
-        <LiquidObject position={[-1, 0, 1]} />
+        <LiquidObject position={[-5, 2, 2]} />
       </DragControls>
 
       <DragControls>
-        <LiquidObject position={[4, -2, -1]} />
+        <LiquidObject position={[4, -1, 5]} />
       </DragControls>
 
       <DragControls>
-        <LiquidObject position={[0, 2, -3]} />
+        <LiquidObject position={[2, 4, -1]} />
       </DragControls>
 
       <Environment preset='forest' />
